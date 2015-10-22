@@ -1,0 +1,144 @@
+#include <linux/init.h>
+#include <linux/kernel.h>
+
+#include <linux/fs.h>
+#include <linux/types.h>
+#include <linux/fcntl.h>
+
+#include <linux/module.h>
+
+#include <linux/skbuff.h>
+#include <linux/netdevice.h>
+#include <linux/netfilter.h>
+#include <linux/netfilter_ipv4.h>
+#include <linux/in.h>
+#include <linux/tcp.h>
+#include <linux/udp.h>
+#include <linux/ip.h>
+
+#include <linux/time.h>
+
+#include "klp_protocol.h"
+#include "myprotocol.h"
+#include "trie.h"
+#include "hash.h"
+
+
+hash table;
+int flow_idx = 0;
+
+// net filter structure 
+static struct nf_hook_ops netfilter_ops;
+struct sk_buff *sock_buff;
+
+unsigned long inet_aton(const char* );
+
+unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
+						const struct net_device *in, const struct net_device *out,
+						int (*okfn)(struct sk_buff *))
+{
+	char *data = 0; // packet payload.
+
+	struct iphdr *iph = ip_hdr(skb);
+	
+	// source ip address, destination ip address
+	unsigned long saddr = 0, daddr = 0;
+
+	// source port number, destination port number
+	unsigned short source = 0, dest = 0;
+
+	// get tcp header, get udp header
+	struct tcphdr *tcph = (struct tcphdr*)((char*)iph + sizeof(struct iphdr));
+	struct udphdr *udph = (struct udphdr*)((char*)iph + sizeof(struct iphdr));
+
+	// source and destination address
+	saddr = iph->saddr;
+	daddr = iph->daddr;
+
+	// source and destination port from tcp header
+	source = htons(tcph->source);
+	dest = htons(tcph->dest);
+	printk("<1>default source : %u \t dest : %u\n %s\n", source, dest, data);
+
+	// when communication protocol is udp, get payload
+	if(iph->protocol == IPPROTO_UDP)
+	{
+		data = (char*)udph + sizeof(*udph);
+		printk("<1> udp source : %u \t dest : %u\n %s\n", source, dest, data);
+	}// when communication protocol is tcp, get payload
+	else if(iph->protocol == IPPROTO_TCP)
+	{
+		klp_key key = {saddr, source, daddr, dest, dest, iph->protocol};
+		klp_flow fdata = {key, 0, 0, 1, 0, 0, 0};
+		listNode *search = SearchHash(&table, &fdata);
+
+		if(search)
+		{
+			search->data.packet_count++;
+		}
+		else
+		{
+			InsertHash(&table, &fdata);
+		}
+
+		data = (char*)tcph + sizeof(*tcph);
+
+		printk("<1>tcp source : %u \t dest : %u\n %s\n", source, dest, data);
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+
+	return NF_ACCEPT;
+}
+
+int init_modules(void)
+{
+	netfilter_ops.hook = main_hook;
+	netfilter_ops.pf = PF_INET;
+	netfilter_ops.hooknum = NF_INET_PRE_ROUTING;
+	netfilter_ops.priority = 1;
+	
+	InitHash(&table);
+	nf_register_hook(&netfilter_ops);
+	
+	return 0;
+}
+
+void cleanup_modules(void)
+{
+	PrintkHash(&table);
+	DestroyHash(&table);
+
+	nf_unregister_hook(&netfilter_ops);
+}
+
+unsigned long inet_aton(const char *str)
+{
+	unsigned long result = 0;
+	unsigned int iaddr[4] = {0, };
+	unsigned char addr[4] = {0, };
+
+	int i;
+	sscanf(str, "%d.%d.%d.%d ", iaddr, iaddr + 1, iaddr + 2, iaddr + 3);
+
+	for(i = 0; i < 4; i++)
+	{
+		addr[i] = (char)iaddr[i];
+	}
+
+	for(i = 3; i > 0; i--)
+	{
+		result |= addr[i];
+		result <<= 8;
+	}
+
+	result |= addr[0];
+	return result;
+}
+
+module_init(init_modules);
+module_exit(cleanup_modules);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("jangsoopark");
+MODULE_DESCRIPTION("soma firewall kernel module");
