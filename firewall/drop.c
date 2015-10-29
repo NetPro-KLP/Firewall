@@ -76,8 +76,10 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 
 	flow.key = key;
 	
+	current_time(cur_time);
 	strcpy(flow.starttime, cur_time);
 
+	printk("%s\n", cur_time);
 	printk("<1>default source : %u \t dest : %u\n %s\n", source, dest, data);
 
 	// when communication protocol is udp, get payload
