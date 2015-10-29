@@ -35,7 +35,7 @@ typedef struct klp_key
     short int src;  // soruce port number
     
     unsigned int daddr;  // destination address
-    short int dest; // destination port number
+    short int dst; // destination port number
     
     short int protocol; // protocol
     
@@ -52,8 +52,8 @@ typedef struct klp_flow
     int packet_count;   // number of packet
 
     int totalbytes; // total packet size
-    int starttime;  // start time
-    int endtime;    // end tine
+    char starttime[20];  // start time
+    char endtime[20];    // end tine
     
     
 } klp_flow;

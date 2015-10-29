@@ -16,10 +16,10 @@
 #include <linux/udp.h>
 #include <linux/ip.h>
 
+#include <linux/string.h>
 #include <linux/time.h>
 
 #include "klp_protocol.h"
-#include "myprotocol.h"
 #include "trie.h"
 #include "hash.h"
 
@@ -32,7 +32,7 @@ static struct nf_hook_ops netfilter_ops;
 struct sk_buff *sock_buff;
 
 unsigned long inet_aton(const char* );
-
+char *current_time(char *strtime);
 unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 						const struct net_device *in, const struct net_device *out,
 						int (*okfn)(struct sk_buff *))
@@ -51,6 +51,14 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	struct tcphdr *tcph = (struct tcphdr*)((char*)iph + sizeof(struct iphdr));
 	struct udphdr *udph = (struct udphdr*)((char*)iph + sizeof(struct iphdr));
 
+	klp_key key ;
+	klp_flow flow ;
+	char cur_time[20] = {0, };
+
+	listNode *search = 0x00;
+
+	memset((char*)&key, 0, sizeof(key));
+	memset((char*)&flow, 0, sizeof(flow));
 	// source and destination address
 	saddr = iph->saddr;
 	daddr = iph->daddr;
@@ -58,6 +66,18 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	// source and destination port from tcp header
 	source = htons(tcph->source);
 	dest = htons(tcph->dest);
+
+	key.saddr = saddr;
+	key.daddr = daddr;
+	key.src = source;
+	key.dst = dest;
+	key.protocol = source;
+	key.tcpudp = iph->protocol == IPPROTO_TCP ? 1 : 0;
+
+	flow.key = key;
+	
+	strcpy(flow.starttime, cur_time);
+
 	printk("<1>default source : %u \t dest : %u\n %s\n", source, dest, data);
 
 	// when communication protocol is udp, get payload
@@ -68,24 +88,21 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	}// when communication protocol is tcp, get payload
 	else if(iph->protocol == IPPROTO_TCP)
 	{
-		klp_key key = {saddr, source, daddr, dest, dest, iph->protocol};
-		klp_flow fdata = {key, 0, 0, 1, 0, 0, 0};
-		listNode *search = SearchHash(&table, &fdata);
-
-		if(search)
-		{
-			search->data.packet_count++;
-		}
-		else
-		{
-			InsertHash(&table, &fdata);
-		}
-
 		data = (char*)tcph + sizeof(*tcph);
 
 		printk("<1>tcp source : %u \t dest : %u\n %s\n", source, dest, data);
 	}
 
+	search = SearchHash(&table, &flow);
+	if(search)
+	{
+		search->data.packet_count++;
+		strcpy(search->data.endtime, cur_time);
+	}
+	else
+	{
+		InsertHash(&table, &flow);
+	}
 	/////////////////////////////////////////////////////////////////////////
 
 	return NF_ACCEPT;
@@ -134,6 +151,18 @@ unsigned long inet_aton(const char *str)
 
 	result |= addr[0];
 	return result;
+}
+char *current_time(char *strtime)
+{
+	struct timeval tv;
+	struct tm tm;
+
+	do_gettimeofday(&tv);
+	time_to_tm(tv.tv_sec, 0, &tm);
+
+	sprintf(strtime, "%04ld-%02d-%02d %02d:%02d:%02d", 
+		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	return strtime;
 }
 
 module_init(init_modules);
