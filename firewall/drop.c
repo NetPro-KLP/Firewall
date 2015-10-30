@@ -17,6 +17,7 @@
 #include <linux/ip.h>
 
 #include <linux/string.h>
+#include <linux/timer.h>
 #include <linux/time.h>
 
 #include "klp_protocol.h"
@@ -78,7 +79,6 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	
 	current_time(cur_time);
 	strcpy(flow.starttime, cur_time);
-
 
 	printk("<1>default source : %u \t dest : %u\n %s\n", source, dest, data);
 
@@ -154,6 +154,7 @@ unsigned long inet_aton(const char *str)
 	result |= addr[0];
 	return result;
 }
+
 char *current_time(char *strtime)
 {
 	struct timeval tv;
