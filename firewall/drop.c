@@ -25,15 +25,18 @@
 #include "hash.h"
 
 
-hash table;
-int flow_idx = 0;
+// net flow table
+hash table;	
 
 // net filter structure 
 static struct nf_hook_ops netfilter_ops;
 struct sk_buff *sock_buff;
 
+
 unsigned long inet_aton(const char* );
 char *current_time(char *strtime);
+
+// main packet hooking funciton
 unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 						const struct net_device *in, const struct net_device *out,
 						int (*okfn)(struct sk_buff *))
