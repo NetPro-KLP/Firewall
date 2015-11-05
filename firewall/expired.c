@@ -88,8 +88,10 @@ int TimeExpired(void)
 
 			// send hash to system backend
 			write_lock(&exp_lock);
+			
 			SendFlowData(&expired_table);
-			DestroyHash(&table);
+			DestroyHash(&expired_table);
+			
 			write_unlock(&exp_lock);
 
 			base_time = GetCurrentTime();
