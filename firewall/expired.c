@@ -1,12 +1,15 @@
+#include "expired.h"
 
-#include <linux/init.h>
+//#include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 
+#include <linux/unistd.h>
 #include <linux/types.h>
 #include <linux/fcntl.h>
 #include <linux/fs.h>
 
+#include <linux/spinlock_types.h>
 #include <linux/spinlock.h>
 #include <linux/kthread.h>
 #include <linux/sched.h>
@@ -39,13 +42,13 @@
 #define SERVER_ADDR	"172.16.100.61"
 #define SERVER_PORT	30000
 
-#define TIMESTEP	5;
+#define TIMESTEP	5
 
 extern hash table;
 
 hash expired_table;
 
-rwlock_t exp_lock = RW_LOCK_UNLOCKED;
+rwlock_t exp_lock;
 int base_time = 0;
 
 unsigned int GetCurrentTime(void)
@@ -92,17 +95,18 @@ int TimeExpired(void)
 			base_time = GetCurrentTime();
 		}
 	}
+	return 0;
 }
 
 int SendFlowData(hash *table)
 {
-	klp_socket cli_fd;
+	klp_socket_t cli_fd;
 
 	struct sockaddr_in srv_addr;
-	char *tmep = 0x00;
+	char *temp = 0x00;
 	int addr_len;
 
-	listNode *pCur = 0;
+	//listNode *pCur = 0;
 #ifdef KLP_SOCKET_ADDR_SAFE
 	mm_segment_t oldfs;
 	old_fs = get_fs();
@@ -126,12 +130,12 @@ int SendFlowData(hash *table)
 	{
 		return -1;
 	}
-	temp = klp_inet_addr(&srv_addr.sin_addr);
+	temp = klp_inet_ntoa(&srv_addr.sin_addr);
 	printk("connected to : %s %d\n", temp, ntohs(srv_addr.sin_port));
 	kfree(temp);
 
 
-	PrintHash(table);
+	PrintkHash(table);
 
 
 	klp_close(cli_fd);
@@ -143,8 +147,9 @@ int SendFlowData(hash *table)
 	return 0;
 }
 
-static int init_expired(void)
+int start_expired(void *arg)
 {
+	rwlock_init(&exp_lock);
 	TimeExpired();
 
 	return 0;
@@ -154,7 +159,7 @@ void exit_expired(void)
 {
 
 }
-
+/*
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("jangsoopark");
-MODULE_DESCRIPTION("soma firewall kernel module");
+MODULE_DESCRIPTION("soma firewall kernel module");*/

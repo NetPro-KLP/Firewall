@@ -1,4 +1,6 @@
-#include <linux/init.h>
+#include "hook.h"
+
+//#include <linux/init.h>
 #include <linux/kernel.h>
 
 #include <linux/fs.h>
@@ -153,7 +155,7 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	return NF_ACCEPT;
 }
 
-static int init_hook(void)
+int start_hook(void *arg)
 {
 	netfilter_ops.hook = main_hook;
 	netfilter_ops.pf = PF_INET;
@@ -194,9 +196,9 @@ void cleanup_modules(void)
 }
 module_init(init_modules);
 module_exit(cleanup_modules);
-*/
+
 EXPORT_SYMBOL(table);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("jangsoopark");
-MODULE_DESCRIPTION("soma firewall kernel module");
+MODULE_DESCRIPTION("soma firewall kernel module");*/

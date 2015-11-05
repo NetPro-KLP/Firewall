@@ -1,7 +1,7 @@
 #ifndef __HOOH_H__
 #define __HOOK_H__
 
-static int init_hook(void);
+int start_hook(void *arg);
 void exit_hook(void);
 
 #endif

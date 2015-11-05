@@ -1,7 +1,7 @@
 #ifndef __EXPIRED_H__
 #define __EXPIRED_H__
 
-static int init_expired(void);
+int start_expired(void *arg);
 void exit_expired(void);
 
 #endif

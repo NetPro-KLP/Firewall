@@ -2,32 +2,6 @@
 #ifndef __KLP_PROTOCOL_H__
 #define __KLP_PROTOCOL_H__
 
-//// code
-
-
-//// method
-#define REQ	"req"
-#define RES	"res"
-
-// protocol header
-typedef struct klp_header
-{
-	unsigned int payload_size;
-} klp_header;
-
-// protocol payload
-typedef struct klp_payload
-{
-	unsigned int 	code;
-	char 			*method;
-	unsigned int 	firewall_id;
-	unsigned int 	start_idx;
-	unsigned int 	end_idx;
-	unsigned int 	current_idx;
-	unsigned int 	contents_size;
-	char			*data;
-} klp_payload;
-
 // key value of klp_flow 
 typedef struct klp_key
 {
