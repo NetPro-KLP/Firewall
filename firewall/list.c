@@ -9,7 +9,7 @@
 #include "list.h"
 
 #include <linux/slab.h>
-#include "kstring.h"
+#include <linux/string.h>
 
 void InitList(list *head)
 {
@@ -36,7 +36,7 @@ listNode *SearchList(list *head, klp_flow *data)
 {
     listNode *cur = head->head;
     
-    while(cur && kstrcmp((char*)&cur->data.key, (char*)&data->key))
+    while(cur && strcmp((char*)&cur->data.key, (char*)&data->key))
     {
         cur = cur->next;
     }
@@ -48,7 +48,7 @@ int DeleteList(list *head, klp_flow *data)
     listNode *del = head->head;
     listNode *pre = 0;
     
-    while(del && kstrcmp((char*)&del->data.key, (char*)&data->key))
+    while(del && strcmp((char*)&del->data.key, (char*)&data->key))
     {
         pre = del;
         del = del->next;
