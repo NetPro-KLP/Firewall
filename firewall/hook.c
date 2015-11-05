@@ -9,7 +9,8 @@
 
 #include <linux/module.h>
 
-#include <asm/processor.h>
+#include <linux/spinlock_types.h>
+#include <linux/spinlock.h>
 #include <linux/kthread.h>
 #include <linux/sched.h>
 
@@ -30,13 +31,14 @@
 #include "trie.h"
 #include "hash.h"
 
-
-// net flow table
-hash table;	
-
 // net filter structure 
 static struct nf_hook_ops netfilter_ops;
 struct sk_buff *sock_buff;
+
+rwlock_t exp_lock;
+
+// net flow table
+hash table;	
 
 unsigned long inet_aton(const char *str)
 {
@@ -162,7 +164,9 @@ int start_hook(void *arg)
 	netfilter_ops.hooknum = NF_INET_PRE_ROUTING;
 	netfilter_ops.priority = 1;
 	
+
 	InitHash(&table);
+	rwlock_init(&exp_lock);
 	nf_register_hook(&netfilter_ops);
 	
 	while(1)
@@ -184,6 +188,9 @@ void exit_hook(void)
 	nf_unregister_hook(&netfilter_ops);
 }
 
+EXPORT_SYMBOL(exp_lock);
+EXPORT_SYMBOL(table);
+
 /*int init_module(void)
 {
 	kthread_run(init_hook);
@@ -196,8 +203,6 @@ void cleanup_modules(void)
 }
 module_init(init_modules);
 module_exit(cleanup_modules);
-
-EXPORT_SYMBOL(table);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("jangsoopark");

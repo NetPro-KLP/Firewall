@@ -48,7 +48,7 @@ extern hash table;
 
 hash expired_table;
 
-rwlock_t exp_lock;
+extern rwlock_t exp_lock;
 int base_time = 0;
 
 unsigned int GetCurrentTime(void)
@@ -149,7 +149,6 @@ int SendFlowData(hash *table)
 
 int start_expired(void *arg)
 {
-	rwlock_init(&exp_lock);
 	TimeExpired();
 
 	return 0;
