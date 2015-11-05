@@ -16,4 +16,5 @@ all:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules 
 
 clean:
+	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) clean
 	rm -rf *.symvers *.ko *.o *.order .*.o.cmd .tmp_versions .*.ko.cmd *.mod.c
