@@ -127,21 +127,22 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	current_time(cur_time);
 	strcpy(flow.starttime, cur_time);
 
-	printk("<1>default source : %u \t dest : %u\n %s\n", source, dest, data);
+	//printk("<1>default source : %u \t dest : %u\n %s\n", source, dest, data);
 
 	// when communication protocol is udp, get payload
 	if(iph->protocol == IPPROTO_UDP)
 	{
 		data = (char*)udph + sizeof(*udph);
-		printk("<1> udp source : %u \t dest : %u\n %s\n", source, dest, data);
+		//printk("<1> udp source : %u \t dest : %u\n %s\n", source, dest, data);
 	}// when communication protocol is tcp, get payload
 	else if(iph->protocol == IPPROTO_TCP)
 	{
 		data = (char*)tcph + sizeof(*tcph);
 
-		printk("<1>tcp source : %u \t dest : %u\n %s\n", source, dest, data);
+		//printk("<1>tcp source : %u \t dest : %u\n %s\n", source, dest, data);
 	}
 
+	write_lock(&exp_lock);
 	search = SearchHash(&table, &flow);
 	if(search)
 	{
@@ -153,6 +154,11 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 		InsertHash(&table, &flow);
 	}
 	/////////////////////////////////////////////////////////////////////////
+	write_unlock(&exp_lock);
+
+	printk("=================================================================================\n");
+	PrintkHash(&table);
+	printk("=================================================================================\n");
 
 	return NF_ACCEPT;
 }
@@ -168,24 +174,29 @@ int start_hook(void *arg)
 	InitHash(&table);
 	rwlock_init(&exp_lock);
 	nf_register_hook(&netfilter_ops);
-	
+
 	while(1)
 	{
-		if(kthread_should_stop())
+		if(kthread_should_stop()) 
+		{
 			break;
-		else
+		}
+		else 
+		{
 			schedule();
+		}
 	}
-
+	
 	return 0;
 }
 
 void exit_hook(void)
-{
+{	
+	nf_unregister_hook(&netfilter_ops);
+
 	PrintkHash(&table);
 	DestroyHash(&table);
 
-	nf_unregister_hook(&netfilter_ops);
 }
 
 EXPORT_SYMBOL(exp_lock);
