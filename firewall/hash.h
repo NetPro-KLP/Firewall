@@ -16,6 +16,7 @@
 
 typedef struct hash
 {
+	int count;
     list *item;
 } hash;
 

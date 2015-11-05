@@ -26,6 +26,8 @@ unsigned long strhash(const char *str)
 void InitHash(hash *table)
 {
     unsigned long i;
+
+    table->count = 0;
     table->item = (list *)kmalloc(sizeof(list)*HASH_SIZE, GFP_KERNEL);
     for(i=0; i<HASH_SIZE; i++)
         InitList(&table->item[i]);
@@ -36,6 +38,7 @@ int InsertHash(hash *table, klp_flow *data)
     unsigned long i = strhash((char *)&data->key);
     if( 0 <= i && i < HASH_SIZE)
     {
+        table->count++;
         InsertList (&table->item[i], data);
     }
     
@@ -59,6 +62,7 @@ listNode *SearchHash(hash *table, klp_flow *data)
 int DeleteHash(hash *table, klp_flow *data)
 {
     unsigned long i = strhash((char *)&data->key);
+    table->count--;
     return DeleteList(&table->item[i], data);
 }
 
@@ -70,7 +74,9 @@ void DestroyHash(hash *table)
         DestroyList(&table->item[i]);
     }
     
+    table->count = 0;
     kfree(table->item);
+    table->item = 0;
 }
 
 void PrintkHash(hash *table)
