@@ -62,41 +62,42 @@ int SendFlowData(hash *table);
 
 int TimeExpired(void)
 {
-	while(1)
-	{
-		if(kthread_should_stop())
-			break;
-		else
-			schedule();
-
 	///////////////////////////////////////////////////////
-		if( (GetCurrentTime() - base_time) < TIMESTEP )
-		{
-			continue;
-		}
-		else
-		{
-			// copy move hash table
-			read_lock(&exp_lock);
-			if(table.count > 0)
-			{
-				expired_table.count = table.count;
-				expired_table.item = table.item;
-				InitHash(&table);				
-			}
-			read_unlock(&exp_lock);
-
-			// send hash to system backend
-			write_lock(&exp_lock);
-			
-			SendFlowData(&expired_table);
-			DestroyHash(&expired_table);
-			
-			write_unlock(&exp_lock);
-
-			base_time = GetCurrentTime();
-		}
+	if( (GetCurrentTime() - base_time) < TIMESTEP )
+	{
+		return 1;
 	}
+	else
+	{
+		base_time = GetCurrentTime();
+	}
+	printk("exp\n");
+	// copy move hash table
+	
+	if(table.count > 0)
+	{
+		read_lock(&exp_lock);
+		printk("hash move\n");
+		expired_table.count = table.count;
+		expired_table.item = table.item;
+		InitHash(&table);				
+		read_unlock(&exp_lock);
+
+		// send hash to system backend
+		SendFlowData(&expired_table);
+		//PrintkHash(&expired_table);
+
+		write_lock(&exp_lock);
+		printk("destroy \n");
+		DestroyHash(&expired_table);
+		write_unlock(&exp_lock);
+	}
+	else
+	{
+		return 2;
+	}
+	
+
 	return 0;
 }
 
@@ -104,9 +105,15 @@ int SendFlowData(hash *table)
 {
 	klp_socket_t cli_fd;
 
-	struct sockaddr_in srv_addr;
+	struct sockaddr_in srv_addr, sock_addr;
 	char *temp = 0x00;
+	char code[] = "exp";
+
+	short int source;
+	int saddr;
+
 	int addr_len;
+	int i;
 
 	//listNode *pCur = 0;
 #ifdef KLP_SOCKET_ADDR_SAFE
@@ -123,7 +130,7 @@ int SendFlowData(hash *table)
 	addr_len = sizeof(struct sockaddr_in);
 
 	cli_fd = klp_socket(AF_INET, SOCK_STREAM, 0);
-	if(cli_fd)
+	if(cli_fd == 0)
 	{
 		return -1;
 	}
@@ -136,9 +143,31 @@ int SendFlowData(hash *table)
 	printk("connected to : %s %d\n", temp, ntohs(srv_addr.sin_port));
 	kfree(temp);
 
+	klp_getsockname(cli_fd, (struct sockaddr *)&sock_addr, &addr_len);
+	source =sock_addr.sin_port;
+    saddr = sock_addr.sin_addr.s_addr;
 
-	PrintkHash(table);
+    i = klp_write(cli_fd, (char*)&saddr, sizeof(int), 0);
+    printk("%d\n", i);
+    i = klp_write(cli_fd, (char*)&(table->count), sizeof(int), 0);
+    printk("%d\n", i);
+    i = klp_write(cli_fd, code, sizeof(int), 0);
+    printk("%d\n", i);
 
+//	read_lock(&exp_lock);
+	/*
+    for(i=0; i<HASH_SIZE; i++)
+    {
+        listNode *cur = table->item[i].head;
+        
+        while(cur)
+        {
+        	klp_write(cli_fd, const void *buffer, size_t length, int flags);
+            cur = cur->next;
+        }
+    }*/
+
+//	read_unlock(&exp_lock);
 
 	klp_close(cli_fd);
 
@@ -151,8 +180,15 @@ int SendFlowData(hash *table)
 
 int start_expired(void *arg)
 {
-	TimeExpired();
+	while(1)
+	{
+		if(kthread_should_stop())
+			break;
+		else
+			schedule();
 
+		TimeExpired();
+	}
 	return 0;
 }
 

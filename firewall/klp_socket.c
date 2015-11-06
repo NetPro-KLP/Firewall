@@ -241,6 +241,28 @@ char *klp_inet_ntoa(struct in_addr *in)
 									(int_ip >> 24) & 0xff);
 	return str_ip;
 }
+
+int klp_getsockname(klp_socket_t socket, struct sockaddr *address, int *address_len)
+{
+	struct socket *sk;
+	int ret;
+	
+	sk = (struct socket *)socket;
+	ret = sk->ops->getname(sk, address, address_len, 0);
+	
+	return ret;
+}
+
+int klp_getpeername(klp_socket_t socket, struct sockaddr *address, int *address_len)
+{
+	struct socket *sk;
+	int ret;
+	
+	sk = (struct socket *)socket;
+	ret = sk->ops->getname(sk, address, address_len, 1);
+	
+	return ret;
+}
 /*
 static int klp_socket_init(void)
 {

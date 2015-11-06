@@ -14,17 +14,16 @@ struct task_struct *expired;
 int init_modules(void)
 {
 	hooking = kthread_run(start_hook, NULL, "hooking");
-	//expired = kthread_run(start_expired, NULL, "expired time");
+	expired = kthread_run(start_expired, NULL, "expired time");
 	return 0;
 }
 void cleanup_modules(void)
 {
 	kthread_stop(hooking);
+	kthread_stop(expired);
 
 	exit_hook();
-	//exit_expired();
-	
-	//kthread_stop(expired);
+	exit_expired();
 }
 
 

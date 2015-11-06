@@ -22,8 +22,8 @@ ssize_t klp_write(klp_socket_t socket, const void *buffer, size_t length, int fl
 int klp_shutdown(klp_socket_t socket, int how);
 int klp_close(klp_socket_t socket);
 
-int klp_getsockname(klp_socket_t socket, struct sockaddr *address, int address_len);
-int klp_getpeername(klp_socket_t socket, struct sockaddr *address, int address_len);
+int klp_getsockname(klp_socket_t socket, struct sockaddr *address, int *address_len);
+int klp_getpeername(klp_socket_t socket, struct sockaddr *address, int *address_len);
 
 unsigned int klp_inet_addr(char *ip);
 char *klp_inet_ntoa(struct in_addr *in);
