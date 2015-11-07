@@ -151,6 +151,7 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	}
 	else
 	{
+		flow.packet_count = 1;
 		InsertHash(&table, &flow);
 	}
 	/////////////////////////////////////////////////////////////////////////

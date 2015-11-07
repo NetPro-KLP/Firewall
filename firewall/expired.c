@@ -40,6 +40,7 @@
 #include "hash.h"
 
 #define SERVER_ADDR	"172.16.100.61"
+//#define SERVER_ADDR		"61.43.139.16"
 #define SERVER_PORT	30000
 
 #define TIMESTEP	5
@@ -76,21 +77,21 @@ int TimeExpired(void)
 	
 	if(table.count > 0)
 	{
-		read_lock(&exp_lock);
+		
 		printk("hash move\n");
 		expired_table.count = table.count;
 		expired_table.item = table.item;
-		InitHash(&table);				
-		read_unlock(&exp_lock);
 
+		InitHash(&table);				
+		
 		// send hash to system backend
 		SendFlowData(&expired_table);
 		//PrintkHash(&expired_table);
 
-		write_lock(&exp_lock);
+		//write_lock(&exp_lock);
 		printk("destroy \n");
 		DestroyHash(&expired_table);
-		write_unlock(&exp_lock);
+		//write_unlock(&exp_lock);
 	}
 	else
 	{
@@ -101,7 +102,7 @@ int TimeExpired(void)
 	return 0;
 }
 
-int SendFlowData(hash *table)
+int SendFlowData(hash *data_table)
 {
 	klp_socket_t cli_fd;
 
@@ -147,26 +148,77 @@ int SendFlowData(hash *table)
 	source =sock_addr.sin_port;
     saddr = sock_addr.sin_addr.s_addr;
 
+    printk("%d\n",data_table->count);
     i = klp_write(cli_fd, (char*)&saddr, sizeof(int), 0);
     printk("%d\n", i);
-    i = klp_write(cli_fd, (char*)&(table->count), sizeof(int), 0);
+    i = klp_write(cli_fd, (char*)&(data_table->count), sizeof(int), 0);
     printk("%d\n", i);
     i = klp_write(cli_fd, code, sizeof(int), 0);
     printk("%d\n", i);
 
 //	read_lock(&exp_lock);
-	/*
+	
+//	write_lock(&exp_lock);
     for(i=0; i<HASH_SIZE; i++)
     {
-        listNode *cur = table->item[i].head;
-        
+    	listNode *cur = data_table->item[i].head;
         while(cur)
         {
-        	klp_write(cli_fd, const void *buffer, size_t length, int flags);
-            cur = cur->next;
+        	klp_flow data = cur->data;
+        	i = klp_write(cli_fd, (char*)&data.key.saddr, sizeof(int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, (char*)&data.key.src, sizeof(short int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	/*i = klp_write(cli_fd, (char*)&data.key.daddr, sizeof(int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, (char*)&data.key.dst, sizeof(short int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, (char*)&data.key.protocol, sizeof(short int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, (char*)&data.key.tcpudp, sizeof(char), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, (char*)&data.warn, sizeof(int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, (char*)&data.danger, sizeof(int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, (char*)&data.packet_count, sizeof(int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, (char*)&data.totalbytes, sizeof(int), 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, data.starttime, sizeof(char)*20, 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+        	i = klp_write(cli_fd, data.endtime, sizeof(char)*20, 0);
+        	printk("%d", i);
+        	if(i <= 0)
+        		break;
+*/
+        	printk("\n\n");
+        	cur = cur->next;
         }
-    }*/
-
+    }
+    //write_unlock(&exp_lock);
 //	read_unlock(&exp_lock);
 
 	klp_close(cli_fd);
