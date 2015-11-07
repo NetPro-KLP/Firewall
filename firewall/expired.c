@@ -197,7 +197,7 @@ int Sender(hash *data_table)
 	printk("connected to : %s %d\n", temp, ntohs(srv_addr.sin_port));
 	kfree(temp);
 
-    SendExpHeader(cli_fd, data_table);
+    
 //	read_lock(&exp_lock);
 	
 //	write_lock(&exp_lock);
@@ -206,6 +206,7 @@ int Sender(hash *data_table)
     	listNode *cur = data_table->item[i].head;
         while(cur)
         {
+        	SendExpHeader(cli_fd, data_table);
         	SendData(cli_fd, &(cur->data));
         	PrintData(&(cur->data));
         	cur = cur->next;
