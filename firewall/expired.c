@@ -39,8 +39,8 @@
 
 #include "hash.h"
 
-#define SERVER_ADDR	"172.16.100.61"
-//#define SERVER_ADDR		"61.43.139.16"
+//#define SERVER_ADDR	"172.16.100.61"
+#define SERVER_ADDR		"61.43.139.16"
 #define SERVER_PORT	30000
 
 #define TIMESTEP	5
@@ -58,8 +58,9 @@ unsigned int GetCurrentTime(void)
 	getnstimeofday(&ts);
 	return ts.tv_sec;
 }
-
-int SendFlowData(hash *table);
+int SendExpHeader(klp_socket_t sock_fd, hash *data_table);
+int SendData(klp_socket_t sock_fd, klp_flow *data);
+int Sender(hash *table);
 
 int TimeExpired(void)
 {
@@ -85,7 +86,7 @@ int TimeExpired(void)
 		InitHash(&table);				
 		
 		// send hash to system backend
-		SendFlowData(&expired_table);
+		Sender(&expired_table);
 		//PrintkHash(&expired_table);
 
 		//write_lock(&exp_lock);
@@ -102,16 +103,68 @@ int TimeExpired(void)
 	return 0;
 }
 
-int SendFlowData(hash *data_table)
+void PrintData(klp_flow *data)
 {
-	klp_socket_t cli_fd;
+	printk("%ud:%ud:%ud:%ud:%ud:%ud:", 
+		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, 
+		data->key.protocol, data->key.tcpudp);
+	printk("%d:%d:%d:%d:%s:%s\n", 
+		data->warn, data->danger, data->packet_count, data->totalbytes,
+		data->starttime,data->endtime);
+}
+int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
+{
+	struct sockaddr_in sock_addr;
 
-	struct sockaddr_in srv_addr, sock_addr;
-	char *temp = 0x00;
 	char code[] = "exp";
+	int addr_len = 0;
+	int data_count = 0;
 
 	short int source;
 	int saddr;
+
+	klp_getsockname(sock_fd, (struct sockaddr *)&sock_addr, &addr_len);
+	source =sock_addr.sin_port;
+    saddr = sock_addr.sin_addr.s_addr;
+
+	data_count += klp_write(sock_fd, (char*)&saddr, sizeof(int), 0);
+    data_count += klp_write(sock_fd, (char*)&(data_table->count), sizeof(int), 0);
+    data_count += klp_write(sock_fd, code, sizeof(int), 0);
+    
+    if(data_count < 3*sizeof(int))
+    	return -1;
+    else
+    	return 0;
+}
+
+int SendData(klp_socket_t sock_fd, klp_flow *data)
+{
+	int data_count = 0;
+	data_count += klp_write(sock_fd, (char*)&data->key.saddr, sizeof(int), 0);
+	data_count += klp_write(sock_fd, (char*)&data->key.src, sizeof(short int), 0);
+	data_count += klp_write(sock_fd, (char*)&data->key.daddr, sizeof(int), 0);
+	data_count += klp_write(sock_fd, (char*)&data->key.dst, sizeof(short int), 0);
+	data_count += klp_write(sock_fd, (char*)&data->key.protocol, sizeof(short int), 0);
+	data_count += klp_write(sock_fd, (char*)&data->key.tcpudp, sizeof(char), 0);
+	data_count += klp_write(sock_fd, (char*)&data->warn, sizeof(int), 0);
+	data_count += klp_write(sock_fd, (char*)&data->danger, sizeof(int), 0);
+	data_count += klp_write(sock_fd, (char*)&data->packet_count, sizeof(int), 0);
+	data_count += klp_write(sock_fd, (char*)&data->totalbytes, sizeof(int), 0);
+	data_count += klp_write(sock_fd, data->starttime, sizeof(char)*20, 0);
+	data_count += klp_write(sock_fd, data->endtime, sizeof(char)*20, 0);
+
+	if(data_count < 71)
+		return -1;
+	else
+		return 0;
+}
+
+int Sender(hash *data_table)
+{
+	klp_socket_t cli_fd;
+
+	struct sockaddr_in srv_addr;
+	char *temp = 0x00;
 
 	int addr_len;
 	int i;
@@ -144,18 +197,7 @@ int SendFlowData(hash *data_table)
 	printk("connected to : %s %d\n", temp, ntohs(srv_addr.sin_port));
 	kfree(temp);
 
-	klp_getsockname(cli_fd, (struct sockaddr *)&sock_addr, &addr_len);
-	source =sock_addr.sin_port;
-    saddr = sock_addr.sin_addr.s_addr;
-
-    printk("%d\n",data_table->count);
-    i = klp_write(cli_fd, (char*)&saddr, sizeof(int), 0);
-    printk("%d\n", i);
-    i = klp_write(cli_fd, (char*)&(data_table->count), sizeof(int), 0);
-    printk("%d\n", i);
-    i = klp_write(cli_fd, code, sizeof(int), 0);
-    printk("%d\n", i);
-
+    SendExpHeader(cli_fd, data_table);
 //	read_lock(&exp_lock);
 	
 //	write_lock(&exp_lock);
@@ -164,57 +206,8 @@ int SendFlowData(hash *data_table)
     	listNode *cur = data_table->item[i].head;
         while(cur)
         {
-        	klp_flow data = cur->data;
-        	i = klp_write(cli_fd, (char*)&data.key.saddr, sizeof(int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, (char*)&data.key.src, sizeof(short int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	/*i = klp_write(cli_fd, (char*)&data.key.daddr, sizeof(int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, (char*)&data.key.dst, sizeof(short int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, (char*)&data.key.protocol, sizeof(short int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, (char*)&data.key.tcpudp, sizeof(char), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, (char*)&data.warn, sizeof(int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, (char*)&data.danger, sizeof(int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, (char*)&data.packet_count, sizeof(int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, (char*)&data.totalbytes, sizeof(int), 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, data.starttime, sizeof(char)*20, 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-        	i = klp_write(cli_fd, data.endtime, sizeof(char)*20, 0);
-        	printk("%d", i);
-        	if(i <= 0)
-        		break;
-*/
-        	printk("\n\n");
+        	SendData(cli_fd, &(cur->data));
+        	PrintData(&(cur->data));
         	cur = cur->next;
         }
     }
