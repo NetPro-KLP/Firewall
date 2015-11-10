@@ -39,8 +39,8 @@
 
 #include "hash.h"
 
-//#define SERVER_ADDR	"172.16.100.61"
-#define SERVER_ADDR		"61.43.139.16"
+#define SERVER_ADDR	"172.16.100.61"
+//#define SERVER_ADDR		"61.43.139.16"
 #define SERVER_PORT	30000
 
 #define TIMESTEP	5
@@ -105,12 +105,14 @@ int TimeExpired(void)
 
 void PrintData(klp_flow *data)
 {
-	printk("%ud:%ud:%ud:%ud:%ud:%ud:", 
+	printk("==============================================================\n");
+	printk("source addr : %u|source port : %u|\ndestination addr : %u|destination port : %u|\ntcpudp : %u|\n", 
 		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, 
-		data->key.protocol, data->key.tcpudp);
-	printk("%d:%d:%d:%d:%s:%s\n", 
+		data->key.tcpudp);
+	printk("warn : %d|danger : %d|packet count : %d|total bytes : %d|\nstart time : %s|\nend time : %s\n", 
 		data->warn, data->danger, data->packet_count, data->totalbytes,
 		data->starttime,data->endtime);
+	printk("==============================================================\n");
 }
 int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
 {
@@ -140,11 +142,11 @@ int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
 int SendData(klp_socket_t sock_fd, klp_flow *data)
 {
 	int data_count = 0;
+
 	data_count += klp_write(sock_fd, (char*)&data->key.saddr, sizeof(int), 0);
 	data_count += klp_write(sock_fd, (char*)&data->key.src, sizeof(short int), 0);
 	data_count += klp_write(sock_fd, (char*)&data->key.daddr, sizeof(int), 0);
 	data_count += klp_write(sock_fd, (char*)&data->key.dst, sizeof(short int), 0);
-	data_count += klp_write(sock_fd, (char*)&data->key.protocol, sizeof(short int), 0);
 	data_count += klp_write(sock_fd, (char*)&data->key.tcpudp, sizeof(char), 0);
 	data_count += klp_write(sock_fd, (char*)&data->warn, sizeof(int), 0);
 	data_count += klp_write(sock_fd, (char*)&data->danger, sizeof(int), 0);
@@ -153,7 +155,7 @@ int SendData(klp_socket_t sock_fd, klp_flow *data)
 	data_count += klp_write(sock_fd, data->starttime, sizeof(char)*20, 0);
 	data_count += klp_write(sock_fd, data->endtime, sizeof(char)*20, 0);
 
-	if(data_count < 71)
+	if(data_count < sizeof(klp_flow))
 		return -1;
 	else
 		return 0;
@@ -197,23 +199,17 @@ int Sender(hash *data_table)
 	printk("connected to : %s %d\n", temp, ntohs(srv_addr.sin_port));
 	kfree(temp);
 
-    
-//	read_lock(&exp_lock);
-	
-//	write_lock(&exp_lock);
+	SendExpHeader(cli_fd, data_table);
     for(i=0; i<HASH_SIZE; i++)
     {
     	listNode *cur = data_table->item[i].head;
         while(cur)
         {
-        	SendExpHeader(cli_fd, data_table);
         	SendData(cli_fd, &(cur->data));
         	PrintData(&(cur->data));
         	cur = cur->next;
         }
     }
-    //write_unlock(&exp_lock);
-//	read_unlock(&exp_lock);
 
 	klp_close(cli_fd);
 

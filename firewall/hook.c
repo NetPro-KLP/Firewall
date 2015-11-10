@@ -119,14 +119,13 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	key.daddr = daddr;
 	key.src = source;
 	key.dst = dest;
-	key.protocol = source;
 	key.tcpudp = iph->protocol == IPPROTO_TCP ? 1 : 0;
 
 	flow.key = key;
 	
 	current_time(cur_time);
 	strcpy(flow.starttime, cur_time);
-
+	strcpy(flow.endtime, cur_time);
 	//printk("<1>default source : %u \t dest : %u\n %s\n", source, dest, data);
 
 	// when communication protocol is udp, get payload
@@ -141,12 +140,14 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 
 		//printk("<1>tcp source : %u \t dest : %u\n %s\n", source, dest, data);
 	}
+	flow.totalbytes = strlen(data);
 
 	write_lock(&exp_lock);
 	search = SearchHash(&table, &flow);
 	if(search)
 	{
 		search->data.packet_count++;
+		search->data.totalbytes += flow.totalbytes;
 		strcpy(search->data.endtime, cur_time);
 	}
 	else
