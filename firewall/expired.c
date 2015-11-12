@@ -141,7 +141,7 @@ int SendData(klp_socket_t sock_fd, klp_flow *data)
 {
 	char buf[256] = {0, };
 	int data_count = 0;
-	int len, i;
+	int len;
 
 	len = sprintf(buf, "%u|%u|%u|%u|%u|%u|%u|%u|%u|%s|%s|",
 		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, data->key.tcpudp,
