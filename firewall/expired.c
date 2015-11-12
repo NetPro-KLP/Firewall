@@ -39,9 +39,9 @@
 
 #include "hash.h"
 
-#define SERVER_ADDR		"127.0.0.1"
+//#define SERVER_ADDR		"127.0.0.1"
 //#define SERVER_ADDR	"172.16.100.61"
-//#define SERVER_ADDR		"61.43.139.16"
+#define SERVER_ADDR		"61.43.139.16"
 #define SERVER_PORT	30000
 
 #define TIMESTEP	5
@@ -131,7 +131,8 @@ int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
     saddr = sock_addr.sin_addr.s_addr;
 
     len = sprintf(buf, "%u|%u|%s|", saddr, data_table->count, code);
-    data_count = klp_write(sock_fd, buf, len+1, MSG_DONTWAIT);
+    data_count = klp_write(sock_fd, buf, len+1, MSG_OOB);
+
     //printk("%s %d\n", buf, data_count);
     
     return data_count;
@@ -147,8 +148,8 @@ int SendData(klp_socket_t sock_fd, klp_flow *data)
 		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, data->key.tcpudp,
 		data->warn, data->danger, data->packet_count, data->totalbytes, data->starttime, data->endtime);
 
-	data_count = klp_write(sock_fd, buf, len+1, MSG_DONTWAIT);
-	
+	data_count = klp_write(sock_fd, buf, len+1, MSG_OOB);
+
 	//printk("%s %d\n", buf, data_count);
 
 	return data_count;
@@ -200,12 +201,18 @@ int Sender(hash *data_table)
 
 	r = SendExpHeader(cli_fd, data_table);
 	printk("hdr : %d\n", r);
+
     for(i=0; i<HASH_SIZE; i++)
     {
     	listNode *cur = data_table->item[i].head;
         while(cur)
         {
+        	//int k;
         	r = SendData(cli_fd, &(cur->data));
+        	if (r <= 0)	continue;
+        	//for(k=r; 0< k && k<119; )
+        	//	k+=klp_write(cli_fd, "-", 2, MSG_OOB);
+
         	printk("payload : %d\n", r);
         	PrintData(&(cur->data));
         	cur = cur->next;
