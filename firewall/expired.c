@@ -143,10 +143,10 @@ int SendData(klp_socket_t sock_fd, klp_flow *data)
 	int data_count = 0;
 	int len;
 
-	len = sprintf(buf, "%u|%u|%u|%u|%u|%u|%u|%u|%u|%s|%s|%d",
+	len = sprintf(buf, "%u|%u|%u|%u|%u|%u|%u|%u|%u|%s|%s|",
 		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, data->key.tcpudp,
-		data->warn, data->danger, data->packet_count, data->totalbytes, data->starttime, data->endtime, 0);
-	data_count = klp_write(sock_fd, buf, len, 0);
+		data->warn, data->danger, data->packet_count, data->totalbytes, data->starttime, data->endtime);
+	data_count = klp_write(sock_fd, buf, len+1, 0);
 	//printk("%s %d\n", buf, data_count);
 
 	return data_count;
