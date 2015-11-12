@@ -6,11 +6,9 @@
 typedef struct klp_key
 {
     unsigned int saddr;  // source address
-    short int src;  // soruce port number
-    short int src_dummy;
+    unsigned short src;  // soruce port number
     unsigned int daddr;  // destination address
-    short int dst; // destination port number
-    short int dst_dummy;
+    unsigned short dst; // destination port number
     char tcpudp;    //if tcp 0, else udp 1
 
 } klp_key;
