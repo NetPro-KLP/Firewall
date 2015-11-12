@@ -39,7 +39,8 @@
 
 #include "hash.h"
 
-#define SERVER_ADDR	"172.16.100.61"
+#define SERVER_ADDR		"127.0.0.1"
+//#define SERVER_ADDR	"172.16.100.61"
 //#define SERVER_ADDR		"61.43.139.16"
 #define SERVER_PORT	30000
 
@@ -117,48 +118,38 @@ void PrintData(klp_flow *data)
 int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
 {
 	struct sockaddr_in sock_addr;
-
+	char buf[512]	= {0, };
 	char code[] = "exp";
-	int addr_len = 0;
+	int len = 0;
 	int data_count = 0;
 
 	short int source;
 	int saddr;
 
-	klp_getsockname(sock_fd, (struct sockaddr *)&sock_addr, &addr_len);
+	klp_getsockname(sock_fd, (struct sockaddr *)&sock_addr, &len);
 	source =sock_addr.sin_port;
     saddr = sock_addr.sin_addr.s_addr;
 
-	data_count += klp_write(sock_fd, (char*)&saddr, sizeof(int), 0);
-    data_count += klp_write(sock_fd, (char*)&(data_table->count), sizeof(int), 0);
-    data_count += klp_write(sock_fd, code, sizeof(int), 0);
+    len = sprintf(buf, "%u|%u|%s|", saddr, data_table->count, code);
+    data_count = klp_write(sock_fd, buf, len, 0);
+    //printk("%s %d\n", buf, data_count);
     
-    if(data_count < 3*sizeof(int))
-    	return -1;
-    else
-    	return 0;
+    return data_count;
 }
 
 int SendData(klp_socket_t sock_fd, klp_flow *data)
 {
+	char buf[512] = {0, };
 	int data_count = 0;
+	int len;
 
-	data_count += klp_write(sock_fd, (char*)&data->key.saddr, sizeof(int), 0);
-	data_count += klp_write(sock_fd, (char*)&data->key.src, sizeof(short int), 0);
-	data_count += klp_write(sock_fd, (char*)&data->key.daddr, sizeof(int), 0);
-	data_count += klp_write(sock_fd, (char*)&data->key.dst, sizeof(short int), 0);
-	data_count += klp_write(sock_fd, (char*)&data->key.tcpudp, sizeof(char), 0);
-	data_count += klp_write(sock_fd, (char*)&data->warn, sizeof(int), 0);
-	data_count += klp_write(sock_fd, (char*)&data->danger, sizeof(int), 0);
-	data_count += klp_write(sock_fd, (char*)&data->packet_count, sizeof(int), 0);
-	data_count += klp_write(sock_fd, (char*)&data->totalbytes, sizeof(int), 0);
-	data_count += klp_write(sock_fd, data->starttime, sizeof(char)*20, 0);
-	data_count += klp_write(sock_fd, data->endtime, sizeof(char)*20, 0);
+	len = sprintf(buf, "%u|%u|%u|%u|%u|%u|%u|%u|%u|%s|%s|",
+		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, data->key.tcpudp,
+		data->warn, data->danger, data->packet_count, data->totalbytes, data->starttime, data->endtime);
+	data_count = klp_write(sock_fd, buf, len, 0);
+	//printk("%s %d\n", buf, data_count);
 
-	if(data_count < sizeof(klp_flow))
-		return -1;
-	else
-		return 0;
+	return data_count;
 }
 
 int Sender(hash *data_table)
