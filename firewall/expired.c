@@ -39,9 +39,9 @@
 
 #include "hash.h"
 
-//#define SERVER_ADDR		"127.0.0.1"
+#define SERVER_ADDR		"127.0.0.1"
 //#define SERVER_ADDR	"172.16.100.61"
-#define SERVER_ADDR		"61.43.139.16"
+//#define SERVER_ADDR		"61.43.139.16"
 #define SERVER_PORT	30000
 
 #define TIMESTEP	5
@@ -118,7 +118,7 @@ void PrintData(klp_flow *data)
 int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
 {
 	struct sockaddr_in sock_addr;
-	char buf[128]	= {0, };
+	char buf[256]	= {0, };
 	char code[] = "exp";
 	int len = 0;
 	int data_count = 0;
@@ -161,6 +161,7 @@ int Sender(hash *data_table)
 	char *temp = 0x00;
 
 	int addr_len;
+	int opt = 1;
 	int i, r;
 
 	//listNode *pCur = 0;
@@ -179,6 +180,11 @@ int Sender(hash *data_table)
 
 	cli_fd = klp_socket(AF_INET, SOCK_STREAM, 0);
 	if(cli_fd == 0)
+	{
+		return -1;
+	}
+
+	if(klp_setsockopt(cli_fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0)
 	{
 		return -1;
 	}

@@ -242,6 +242,33 @@ char *klp_inet_ntoa(struct in_addr *in)
 	return str_ip;
 }
 
+int klp_setsockopt(klp_socket_t socket, int level, int optname, void *optval, int optlen)
+{
+	struct socket *sk;
+	int ret;
+#ifndef KLP_SOCKET_ADDR_SAFE
+	mm_segment_t old_fs;
+#endif
+
+	sk = (struct socket *)socket;
+
+#ifndef KLP_SOCKET_ADDR_SAFE
+	old_fs = get_fs();
+	set_fs(KERNEL_DS);
+#endif
+
+	if (level == SOL_SOCKET)
+		ret = sock_setsockopt(sk, level, optname, optval, optlen);
+	else
+		ret = sk->ops->setsockopt(sk, level, optname, optval, optlen);
+
+#ifndef KLP_SOCKET_ADDR_SAFE	
+	set_fs(old_fs);
+#endif
+
+	return ret;
+}
+
 int klp_getsockname(klp_socket_t socket, struct sockaddr *address, int *address_len)
 {
 	struct socket *sk;

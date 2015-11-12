@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
             receive size : 28 byte include dummy byte
         */
         len = read(connfd, buf, 1024);
-//        printf("%s\n", buf);
+        printf("%s\n", buf);
 
         // convert ip address from ascii to int
         tok = strtok(buf, "|");
@@ -67,12 +67,12 @@ int main(int argc, char *argv[])
         tok = strtok(0x00, "|");
         strcpy(cmd, tok);
         
-        printf("HEADER\n");
+        /*printf("HEADER\n");
         printf("firewall address : %u\n", ip);
         printf("row_num : %u\n", row_num);
         printf("cmd : %s\n", cmd);
         printf("===================================\n");
-
+*/
         for(i=0; i<row_num; i++)
         {
             unsigned int saddr, daddr;
@@ -91,8 +91,9 @@ int main(int argc, char *argv[])
                 receive size 120 include dummy byte
             */
             read(connfd, buf, 1024);
+            printf("%s\n", buf);
             // convert saddr from ascii to int
-            tok = strtok(buf, "|");
+            /*tok = strtok(buf, "|");
             saddr = atoi(tok);
             // convert src from ascii to int
             tok = strtok(0x00, "|");
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
             printf("warn : %u | danger : %u | packet_count : %u | total_byets : %u \n",
                 warn, danger, packet_count, total_byets);
             printf("start time : %s\nend time : %s\n", starttime, endtime);
-            printf("===================================\n");
+            printf("===================================\n");*/
         }
 
         close(connfd);

@@ -25,6 +25,9 @@ int klp_close(klp_socket_t socket);
 int klp_getsockname(klp_socket_t socket, struct sockaddr *address, int *address_len);
 int klp_getpeername(klp_socket_t socket, struct sockaddr *address, int *address_len);
 
+int klp_setsockopt(klp_socket_t socket, int level, int optname, void *optval, int optlen);
+//int klp_getsockopt(ksocket_t socket, int level, int optname, void *optval, int *optlen);
+
 unsigned int klp_inet_addr(char *ip);
 char *klp_inet_ntoa(struct in_addr *in);
 
