@@ -148,7 +148,7 @@ int SendData(klp_socket_t sock_fd, klp_flow *data)
 		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, data->key.tcpudp,
 		data->warn, data->danger, data->packet_count, data->totalbytes, data->starttime, data->endtime);
 
-	for (i = len; i<118; i++)
+	for (i = len; i<119; i++)
 		buf[i] = '-';
 
 	len = strlen(buf);
