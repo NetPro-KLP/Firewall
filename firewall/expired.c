@@ -118,7 +118,7 @@ void PrintData(klp_flow *data)
 int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
 {
 	struct sockaddr_in sock_addr;
-	char buf[32]	= {0, };
+	char buf[128]	= {0, };
 	char code[] = "exp";
 	int len = 0;
 	int data_count = 0;
@@ -139,7 +139,7 @@ int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
 
 int SendData(klp_socket_t sock_fd, klp_flow *data)
 {
-	char buf[120] = {0, };
+	char buf[256] = {0, };
 	int data_count = 0;
 	int len, i;
 
