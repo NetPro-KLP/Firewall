@@ -151,6 +151,7 @@ int SendData(klp_socket_t sock_fd, klp_flow *data)
 	for (i = len; i<118; i++)
 		buf[i] = '-';
 
+	len = strlen(buf);
 	data_count = klp_write(sock_fd, buf, len+1, MSG_OOB);
 
 	//printk("%s %d\n", buf, data_count);
