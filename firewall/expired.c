@@ -118,7 +118,7 @@ void PrintData(klp_flow *data)
 int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
 {
 	struct sockaddr_in sock_addr;
-	char buf[512]	= {0, };
+	char buf[256]	= {0, };
 	char code[] = "exp";
 	int len = 0;
 	int data_count = 0;
@@ -131,7 +131,7 @@ int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
     saddr = sock_addr.sin_addr.s_addr;
 
     len = sprintf(buf, "%u|%u|%s|", saddr, data_table->count, code);
-    data_count = klp_write(sock_fd, buf, len, 0);
+    data_count = klp_write(sock_fd, buf, len+1, 0);
     //printk("%s %d\n", buf, data_count);
     
     return data_count;
