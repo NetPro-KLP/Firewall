@@ -131,7 +131,7 @@ int SendExpHeader(klp_socket_t sock_fd, hash *data_table)
     saddr = sock_addr.sin_addr.s_addr;
 
     len = sprintf(buf, "%u|%u|%s|", saddr, data_table->count, code);
-    data_count = klp_write(sock_fd, buf, len+1, 0);
+    data_count = klp_write(sock_fd, buf, len+1, MSG_DONTWAIT);
     //printk("%s %d\n", buf, data_count);
     
     return data_count;
@@ -147,7 +147,8 @@ int SendData(klp_socket_t sock_fd, klp_flow *data)
 		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, data->key.tcpudp,
 		data->warn, data->danger, data->packet_count, data->totalbytes, data->starttime, data->endtime);
 
-	data_count = klp_write(sock_fd, buf, len+1, 0);
+	data_count = klp_write(sock_fd, buf, len+1, MSG_DONTWAIT);
+	
 	//printk("%s %d\n", buf, data_count);
 
 	return data_count;
