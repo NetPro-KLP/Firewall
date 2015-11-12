@@ -142,11 +142,14 @@ int SendData(klp_socket_t sock_fd, klp_flow *data)
 {
 	char buf[256] = {0, };
 	int data_count = 0;
-	int len;
+	int len, i;
 
 	len = sprintf(buf, "%u|%u|%u|%u|%u|%u|%u|%u|%u|%s|%s|",
 		data->key.saddr, data->key.src, data->key.daddr, data->key.dst, data->key.tcpudp,
 		data->warn, data->danger, data->packet_count, data->totalbytes, data->starttime, data->endtime);
+
+	for (i = len; i<118; i++)
+		buf[i] = '-';
 
 	data_count = klp_write(sock_fd, buf, len+1, MSG_OOB);
 
@@ -207,11 +210,8 @@ int Sender(hash *data_table)
     	listNode *cur = data_table->item[i].head;
         while(cur)
         {
-        	//int k;
         	r = SendData(cli_fd, &(cur->data));
         	if (r <= 0)	continue;
-        	//for(k=r; 0< k && k<119; )
-        	//	k+=klp_write(cli_fd, "-", 2, MSG_OOB);
 
         	printk("payload : %d\n", r);
         	PrintData(&(cur->data));
