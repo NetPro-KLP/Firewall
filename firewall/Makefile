@@ -1,7 +1,7 @@
 KERNELDIR = /lib/modules/$(shell uname -r)/build
 
 obj-m := firewall.o
-firewall-objs := queue.o trie.o hook.o list.o hash.o expired.o klp_socket.o firewall_main.o listener.o
+firewall-objs := queue.o trie.o hook.o list.o hash.o expired.o klp_socket.o firewall_main.o request.o
 
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)

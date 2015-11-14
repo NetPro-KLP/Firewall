@@ -9,8 +9,6 @@
 
 #include <linux/module.h>
 
-#include <linux/spinlock_types.h>
-#include <linux/spinlock.h>
 #include <linux/kthread.h>
 #include <linux/sched.h>
 
@@ -34,8 +32,6 @@
 // net filter structure 
 static struct nf_hook_ops netfilter_ops;
 struct sk_buff *sock_buff;
-
-rwlock_t exp_lock;
 
 // net flow table
 hash table;	
@@ -142,7 +138,6 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	}
 	flow.totalbytes = strlen(data);
 
-	write_lock(&exp_lock);
 	search = SearchHash(&table, &flow);
 	if(search)
 	{
@@ -156,7 +151,6 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 		InsertHash(&table, &flow);
 	}
 	/////////////////////////////////////////////////////////////////////////
-	write_unlock(&exp_lock);
 
 	return NF_ACCEPT;
 }
@@ -170,7 +164,6 @@ int start_hook(void *arg)
 	
 
 	InitHash(&table);
-	rwlock_init(&exp_lock);
 	nf_register_hook(&netfilter_ops);
 
 	while(1)
@@ -197,7 +190,6 @@ void exit_hook(void)
 
 }
 
-EXPORT_SYMBOL(exp_lock);
 EXPORT_SYMBOL(table);
 
 /*int init_module(void)

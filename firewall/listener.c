@@ -39,6 +39,8 @@
 
 #define SERVER_PORT		30001
 
+
+
 int listener(void)
 {
 	klp_socket_t sockfd_srv, sockfd_cli;
@@ -66,16 +68,19 @@ int listener(void)
 	
 	sockfd_srv = klp_socket(AF_INET, SOCK_STREAM, 0);
 	printk("sockfd_srv = 0x%p\n", sockfd_srv);
+
 	if (sockfd_srv == NULL)
 	{
 		printk("socket failed\n");
 		return -1;
 	}
+
 	if (klp_bind(sockfd_srv, (struct sockaddr *)&addr_srv, addr_len) < 0)
 	{
 		printk("bind failed\n");
 		return -1;
 	}
+
 	if (klp_listen(sockfd_srv, 10) < 0)
 	{
 		printk("listen failed\n");
@@ -90,6 +95,7 @@ int listener(void)
 			printk("accept failed\n");
 			return -1;
 		}
+		
 		else
 		{
 			printk("sockfd_cli = 0x%p\n", sockfd_cli);
