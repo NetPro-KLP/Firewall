@@ -69,7 +69,7 @@ int TimeExpired(void)
 		InitHash(&table);				
 		
 		// send hash to system backend
-		Sender(&expired_table, "exp");
+		SenderExp(&expired_table, "exp");
 		//PrintkHash(&expired_table);
 
 		printk("destroy \n");

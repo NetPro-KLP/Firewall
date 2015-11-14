@@ -94,7 +94,7 @@ int SendExpData(klp_socket_t sock_fd, klp_flow *data)
 	return data_count;
 }
 
-int Sender(hash *data_table, char *code)
+int SenderExp(hash *data_table, char *code)
 {
 	klp_socket_t cli_fd;
 
@@ -156,10 +156,6 @@ int Sender(hash *data_table, char *code)
 	        	cur = cur->next;
 	        }
 	    }
-	}
-	else
-	{
-		r = SendHeader(cli_fd, code, 0x00);
 	}
 
 	klp_close(cli_fd);
