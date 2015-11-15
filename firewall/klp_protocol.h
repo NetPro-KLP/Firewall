@@ -2,6 +2,12 @@
 #ifndef __KLP_PROTOCOL_H__
 #define __KLP_PROTOCOL_H__
 
+typedef struct klp_geo
+{
+    unsigned int from;
+    unsigned int to;
+}klp_geo;
+
 // key value of klp_flow 
 typedef struct klp_key
 {

@@ -47,6 +47,7 @@ int SendHeader(klp_socket_t sock_fd, char *code, void *data)
 
 	short int source;
 	int saddr;
+	int i;
 
 	klp_getsockname(sock_fd, (struct sockaddr *)&sock_addr, &len);
 	source =sock_addr.sin_port;
@@ -66,7 +67,9 @@ int SendHeader(klp_socket_t sock_fd, char *code, void *data)
 		return -1;
 	}
     
-    data_count = klp_write(sock_fd, buf, len+1, MSG_OOB);
+    for (i = len; i<48; i++)
+		buf[i] = '-';
+    data_count = klp_write(sock_fd, buf, len+1, 0);
 
     //printk("%s %d\n", buf, data_count);
     
@@ -87,7 +90,7 @@ int SendExpData(klp_socket_t sock_fd, klp_flow *data)
 		buf[i] = '-';
 
 	len = strlen(buf);
-	data_count = klp_write(sock_fd, buf, len+1, MSG_OOB);
+	data_count = klp_write(sock_fd, buf, len+1, 0);
 
 	//printk("%s %d\n", buf, data_count);
 

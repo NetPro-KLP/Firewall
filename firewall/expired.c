@@ -74,6 +74,7 @@ int TimeExpired(void)
 
 		printk("destroy \n");
 		DestroyHash(&expired_table);
+		base_time = GetCurrentTime();	
 	}
 	else
 	{
