@@ -139,7 +139,7 @@ ssize_t krecv(ksocket_t socket, void *buffer, size_t length, int flags)
 #endif
 	msg.msg_control = NULL;
 	msg.msg_controllen = 0;
-	msg.msg_flags = flags;
+
 	/*
 	 * msg.msg_iov->iov_base is declared as follows:
 	 * void __user *iov_base;
