@@ -19,7 +19,7 @@
 #include <asm/processor.h>
 
 #include "klp_protocol.h"
-#include "klp_socket.h"
+#include "ksocket.h"
 
 //#define SERVER_ADDR		"127.0.0.1"
 #define SERVER_ADDR	"172.16.100.61"
@@ -38,7 +38,7 @@ void PrintData(klp_flow *data)
 	printk("==============================================================\n");
 }
 
-int SendHeader(klp_socket_t sock_fd, char *code, void *data)
+int SendHeader(ksocket_t sock_fd, char *code, void *data)
 {
 	struct sockaddr_in sock_addr;
 	char buf[256]	= {0, };
@@ -49,7 +49,7 @@ int SendHeader(klp_socket_t sock_fd, char *code, void *data)
 	int saddr;
 	int i;
 
-	klp_getsockname(sock_fd, (struct sockaddr *)&sock_addr, &len);
+	kgetsockname(sock_fd, (struct sockaddr *)&sock_addr, &len);
 	source =sock_addr.sin_port;
     saddr = sock_addr.sin_addr.s_addr;
 
@@ -69,14 +69,14 @@ int SendHeader(klp_socket_t sock_fd, char *code, void *data)
     
     for (i = len; i<48; i++)
 		buf[i] = '-';
-    data_count = klp_write(sock_fd, buf, len+1, 0);
+    data_count = ksend(sock_fd, buf, len+1, 0);
 
     //printk("%s %d\n", buf, data_count);
     
     return data_count;
 }
 
-int SendExpData(klp_socket_t sock_fd, klp_flow *data)
+int SendExpData(ksocket_t sock_fd, klp_flow *data)
 {
 	char buf[256] = {0, };
 	int data_count = 0;
@@ -90,7 +90,7 @@ int SendExpData(klp_socket_t sock_fd, klp_flow *data)
 		buf[i] = '-';
 
 	len = strlen(buf);
-	data_count = klp_write(sock_fd, buf, len+1, 0);
+	data_count = ksend(sock_fd, buf, len+1, 0);
 
 	//printk("%s %d\n", buf, data_count);
 
@@ -99,7 +99,7 @@ int SendExpData(klp_socket_t sock_fd, klp_flow *data)
 
 int SenderExp(hash *data_table, char *code)
 {
-	klp_socket_t cli_fd;
+	ksocket_t cli_fd;
 
 	struct sockaddr_in srv_addr;
 	char *temp = 0x00;
@@ -109,7 +109,7 @@ int SenderExp(hash *data_table, char *code)
 	int i, r;
 
 	//listNode *pCur = 0;
-#ifdef KLP_SOCKET_ADDR_SAFE
+#ifdef KSOCKET_ADDR_SAFE
 	mm_segment_t oldfs;
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
@@ -118,27 +118,27 @@ int SenderExp(hash *data_table, char *code)
 	memset(&srv_addr, 0, sizeof(srv_addr));
 	srv_addr.sin_family = AF_INET;
 	srv_addr.sin_port = htons(SERVER_PORT);
-	srv_addr.sin_addr.s_addr = klp_inet_addr(SERVER_ADDR);
+	srv_addr.sin_addr.s_addr = inet_addr(SERVER_ADDR);
 
 	addr_len = sizeof(struct sockaddr_in);
 
-	cli_fd = klp_socket(AF_INET, SOCK_STREAM, 0);
+	cli_fd = ksocket(AF_INET, SOCK_STREAM, 0);
 	if(cli_fd == 0)
 	{
 		return -1;
 	}
 
-	if(klp_setsockopt(cli_fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0)
+	if(ksetsockopt(cli_fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0)
 	{
 		return -1;
 	}
 
-	if(klp_connect(cli_fd, (struct sockaddr *)&srv_addr, addr_len) < 0)
+	if(kconnect(cli_fd, (struct sockaddr *)&srv_addr, addr_len) < 0)
 	{
 		return -1;
 	}
 	
-	temp = klp_inet_ntoa(&srv_addr.sin_addr);
+	temp = inet_ntoa(&srv_addr.sin_addr);
 	printk("connected to : %s %d\n", temp, ntohs(srv_addr.sin_port));
 	kfree(temp);
 
@@ -161,9 +161,9 @@ int SenderExp(hash *data_table, char *code)
 	    }
 	}
 
-	klp_close(cli_fd);
+	kclose(cli_fd);
 
-#ifdef KLP_SOCKET_ADDR_SAFE
+#ifdef KSOCKET_ADDR_SAFE
 	set_fs(old_fs);
 #endif
 	

@@ -25,7 +25,7 @@
 #include <asm/processor.h>
 
 #include "klp_protocol.h"
-#include "klp_socket.h"
+#include "ksocket.h"
 
 #include "request.h"
 

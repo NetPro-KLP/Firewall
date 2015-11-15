@@ -1,7 +1,7 @@
 KERNELDIR = /lib/modules/$(shell uname -r)/build
 
 obj-m := firewall.o
-firewall-objs := queue.o trie.o hook.o list.o hash.o expired.o klp_socket.o firewall_main.o request.o
+firewall-objs := queue.o trie.o hook.o list.o hash.o expired.o ksocket.o firewall_main.o request.o
 
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
@@ -9,7 +9,7 @@ PWD := $(shell pwd)
 CC = gcc
 
 ifeq ($(ADDRSAFE), true)
-	EXTRA_CFLAGS += -DKLP_SOCKET_ADDR_SAFE
+	EXTRA_CFLAGS += -DKSOCKET_ADDR_SAFE
 endif
 
 all:
