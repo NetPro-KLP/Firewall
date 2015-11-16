@@ -1,21 +1,8 @@
 #ifndef __TRIE_H__
 #define __TRIE_H__
 
-#define SYMBOL_SIZE	256
+#include "node.h"
 
-typedef unsigned char uchar;
-
-//// trie node
-typedef struct node
-{
-	uchar symbol;
-	int isEnd;
-    
-    struct node *failure;
-
-	struct node *child_vector[SYMBOL_SIZE];
-
-} node;
 
 //// trie function
 node *CreateNode(char symbol, int isEnd);

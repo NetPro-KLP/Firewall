@@ -1,10 +1,9 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
-struct node;
-//typedef struct node node;
+#include "node.h"
 
-typedef struct node DATA;
+typedef node DATA;
 
 typedef struct queueNode
 {
