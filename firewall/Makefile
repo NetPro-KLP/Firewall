@@ -1,4 +1,5 @@
-KERNELDIR = /lib/modules/$(shell uname -r)/build
+#KERNELDIR = /lib/modules/$(shell uname -r)/build
+KERNELDIR = /lib/modules/$(shell uname -mrsn | awk '{print $3}')/build
 
 obj-m := firewall.o
 firewall-objs := queue.o trie.o hook.o list.o hash.o expired.o ksocket.o firewall_main.o request.o

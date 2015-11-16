@@ -29,6 +29,8 @@
 #include "trie.h"
 #include "hash.h"
 
+extern rwlock_t hash_lock;
+
 // net filter structure 
 static struct nf_hook_ops netfilter_ops;
 struct sk_buff *sock_buff;
@@ -138,6 +140,7 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 	}
 	flow.totalbytes = strlen(data);
 
+	write_lock(&hash_lock);
 	search = SearchHash(&table, &flow);
 	if(search)
 	{
@@ -150,6 +153,7 @@ unsigned int main_hook(unsigned int hooknum, struct sk_buff *skb,
 		flow.packet_count = 1;
 		InsertHash(&table, &flow);
 	}
+	write_unlock(&hash_lock);
 	/////////////////////////////////////////////////////////////////////////
 
 	return NF_ACCEPT;

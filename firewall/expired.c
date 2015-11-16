@@ -34,6 +34,8 @@
 #define TIMESTEP	5
 
 extern hash table;
+extern rwlock_t hash_lock;
+
 
 hash expired_table;
 
@@ -66,7 +68,9 @@ int TimeExpired(void)
 		expired_table.count = table.count;
 		expired_table.item = table.item;
 
-		InitHash(&table);				
+		write_lock(&hash_lock);
+		InitHash(&table);	
+		write_unlock(&hash_lock);
 		
 		// send hash to system backend
 		SenderExp(&expired_table, "exp");
