@@ -2,9 +2,9 @@
 #define __QUEUE_H__
 
 struct node;
-typedef struct node node;
+//typedef struct node node;
 
-typedef node DATA;
+typedef struct node DATA;
 
 typedef struct queueNode
 {
