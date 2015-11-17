@@ -41,7 +41,7 @@ void PrintData(klp_flow *data)
 int SendHeader(ksocket_t sock_fd, char *code, void *data)
 {
 	struct sockaddr_in sock_addr;
-	char buf[256]	= {0, };
+	char buf[56]	= {0, };
 	int len = 0;
 	int data_count = 0;
 
@@ -66,9 +66,9 @@ int SendHeader(ksocket_t sock_fd, char *code, void *data)
 	{
 		return -1;
 	}
-    
-    for (i = len; i<48; i++)
+    for (i = len; i<=48; i++)
 		buf[i] = '-';
+len = i;
     data_count = ksend(sock_fd, buf, len+1, 0);
 
     //printk("%s %d\n", buf, data_count);
@@ -78,7 +78,7 @@ int SendHeader(ksocket_t sock_fd, char *code, void *data)
 
 int SendExpData(ksocket_t sock_fd, klp_flow *data)
 {
-	char buf[256] = {0, };
+	char buf[128] = {0, };
 	int data_count = 0;
 	int len, i;
 

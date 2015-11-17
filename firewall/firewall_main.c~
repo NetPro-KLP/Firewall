@@ -5,9 +5,8 @@
 
 #include <linux/kthread.h>
 
-//#include <linux/rwlock.h>
-//#include <linux/rwlock_types.h>
-#include <linux/spinlock.h>
+#include <linux/rwlock.h>
+#include <linux/rwlock_types.h>
 
 #include "expired.h"
 #include "hook.h"
